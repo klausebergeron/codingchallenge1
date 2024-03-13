@@ -109,10 +109,21 @@ const Search = ({onAddToFavorites}: SearchProps) => {
         }
     }
 
+    const reset = () => {
+        setSearchResults(null);
+        setCurrentPage(1);
+        setTotalResults(0);
+    }
+
     return (
         <>
             <h3>Search for repo:</h3>
-                {error && <p>ERROR: {error}</p>}
+                {error &&
+                    <div style={{width: "300px", display: "flex", justifyContent: "space-between"}}>
+                        <p>ERROR: {error}</p>
+                        <button onClick={reset}>OK</button>
+                    </div>
+                }
                 <input type="text" onChange={e => setSearchInput(e.target.value)} onKeyDown={inputEnter} value={searchInput}></input>
                 <button type={'submit'} onClick={submitClicked}>Search</button>
             {isLoading && <p>Loading...</p>}

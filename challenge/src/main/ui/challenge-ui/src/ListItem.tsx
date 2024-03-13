@@ -13,7 +13,6 @@ export type RepoInfo = {
 const ListItem = ({info, onAddToFavorites, onDelete}: ListItemProps) => {
     
     const handleDelete = (f: RepoInfo) => {
-        console.log("Deleting from favlist in ListItem component")
         if(onDelete) onDelete(f);
     }
 

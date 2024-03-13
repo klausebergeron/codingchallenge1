@@ -8,6 +8,7 @@ class DemoApplicationTests {
 
 	@Test
 	void contextLoads() {
+		//todo - write tests for REST functions
 	}
 
 }
