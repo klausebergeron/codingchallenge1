@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { RepoInfo } from './ListItem';
 import ListItem from './ListItem';
 export type SearchProps = {
@@ -23,8 +23,6 @@ const Search = ({onAddToFavorites}: SearchProps) => {
     }
 
     const fetchSearch = () => {
-       //"repository_search_url": 
-        //"https://api.github.com/search/repositories?q={query}{&page,per_page,sort,order}" 
         const URL = `https://api.github.com/search/repositories?q=${searchInput}&page=${currentPage}&per_page=${perPage}`;
         setError(null);
         if(searchInput) {
@@ -32,6 +30,7 @@ const Search = ({onAddToFavorites}: SearchProps) => {
             return fetch(URL)
                 .then((resp) => resp.json())
                 .then((jsonResp) => {
+                    //need to have some way to tell the user that they can't see past first 1000 results
                     setTotalResults(jsonResp?.total_count);
                     setSearchResults(jsonResp.items?.map(
                         (item: any): RepoInfo => { 
@@ -52,11 +51,6 @@ const Search = ({onAddToFavorites}: SearchProps) => {
     useEffect(() => {
         fetchSearch();
     }, [currentPage, perPage])
-
-    
-    const handleSearch = () => {
-        fetchSearch();
-    }
 
     const goBack = () => {
         if(currentPage > 1) setCurrentPage(currentPage-1);
@@ -90,8 +84,8 @@ const Search = ({onAddToFavorites}: SearchProps) => {
         <>
             <h3>Search for repo:</h3>
                 {error && <p>ERROR: {error}</p>}
-                <input type="text" placeholder={'Enter Search'} onChange={handleChangeInput} value={searchInput}></input>
-                <button type={'submit'} onClick={handleSearch}>Search</button>
+                <input type="text" onChange={handleChangeInput} value={searchInput}></input>
+                <button type={'submit'} onClick={fetchSearch}>Search</button>
             {isLoading && <p>Loading...</p>}
             {searchResults && 
                 <>
@@ -108,7 +102,7 @@ const Search = ({onAddToFavorites}: SearchProps) => {
                 <div className='paginationNav'>
                     
                     <label>Page: </label>
-                    <select id="pageSelect" defaultValue={currentPage} onChange={e => setCurrentPage(e.target.value)}>
+                    <select id="pageSelect" value={currentPage} onChange={e => setCurrentPage(e.target.value)}>
                         {getPageSelectionOptions()}
                     </select>
 
