@@ -119,7 +119,7 @@ const Search = ({onAddToFavorites}: SearchProps) => {
         <>
             <h3>Search for repo:</h3>
                 {error &&
-                    <div style={{width: "300px", display: "flex", justifyContent: "space-between"}}>
+                    <div style={{display: "flex", justifyContent: "space-between"}}>
                         <p>ERROR: {error}</p>
                         <button onClick={reset}>OK</button>
                     </div>
