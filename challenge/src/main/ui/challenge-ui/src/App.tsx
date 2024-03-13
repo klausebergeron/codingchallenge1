@@ -49,7 +49,7 @@ function App() {
         handleResponse(data);
       })
       .catch(err => {
-        console.log("Error: ", err ? err : 'none');
+        setError(err)
       })        
   }
 

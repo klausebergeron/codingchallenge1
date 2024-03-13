@@ -14,6 +14,7 @@ const Search = ({onAddToFavorites}: SearchProps) => {
     const [perPage, setPerPage] = useState<number>(10);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    
     const totalPages: number = useMemo(() => {return Math.ceil(totalResults/perPage)}, [totalResults, perPage]);
     
     const URL = useMemo(() => {
@@ -67,7 +68,6 @@ const Search = ({onAddToFavorites}: SearchProps) => {
                 setIsLoading(false);
                 })
                 .catch((err) => {
-                    console.log("Error: ", err);
                     setSearchResults(null);
                     setIsLoading(false);
                     setError("Error fetching repos: " + err);
