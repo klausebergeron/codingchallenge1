@@ -27,7 +27,7 @@ public class FavoritesController {
 	public ResponseEntity<?> get() {
         List<String> favList = favoritesService.getFavorites();
         if(favList.size() > 0) {
-            return new ResponseEntity<>("{items:"+favList.toString()+"}", HttpStatus.OK);
+            return new ResponseEntity<>(favList, HttpStatus.OK);
         }
         else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

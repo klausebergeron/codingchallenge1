@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,8 +68,10 @@ public class FavoritesService {
     public List<String> deleteFavorite(String favorite) {
         List<String> favList = new ArrayList<>();
         favList = getFavorites();
-        if(favList.contains(favorite)) {
-            favList.remove(favorite);
+        for(int i = 0; i < favList.size(); i++) {
+            if(favList.get(i).replace("\"", "").equals(favorite.replace("\"", ""))) {
+                favList.remove(i);
+            }
         }
         updateFile(favList);        
         return favList;

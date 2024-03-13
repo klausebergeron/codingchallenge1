@@ -8,40 +8,49 @@ function App() {
   const [displayedList, setDisplayedList] = useState<RepoInfo[] | null>(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const URL = `http://localhost:8080/favorites`;
+  const URL = `http://localhost:5173/favorites`;
 
-  const testData = {items: [{id:"760869210",name:"klauseb"}, {id:"748202207",name:"klauseba"}]}
-  const headers = {
-    "Access-Control-Allow-Origin": "*", 
-    'Access-Control-Allow-Credentials' : true,
-    'Content-Type': 'application/json'
-  }
-
-  const handleResponse = (responseBody: RepoInfo[]) => {
-          //todo - data sanitization
-          console.log("Response body: ", responseBody);
-          setDisplayedList(responseBody);
+  const handleResponse = (responseBody: string[]) => {
+          const list = responseBody.map((r) => {
+            const info = JSON.parse(r);
+            return {
+              id: info.id.toString(),
+              name: info.name,
+              link: info.link
+            }
+          })
+          setDisplayedList(list);
           setIsLoading(false);
           setError(null);
   }
 
   useEffect(() => {
+    console.log('List updated')
+  }, [displayedList])
+
+  useEffect(() => {
     getFavsList();
   }, [])
 
+  async function doFetch(method: string, body: any) {
+    let response = await fetch(URL, {
+      body: body ? JSON.stringify(body) : null,
+      method: method,
+      mode: 'same-origin',
+      referrer: '',
+      credentials: 'omit',
+      headers: {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': URL},
+    })
+    return await response.json();
+  }
+
   const getFavsList = () => {
-    console.log("Calling getFavsList...")
       setError(null);
       setIsLoading(true);
-      fetch(URL, {
-        body: null,
-        method: 'GET',
-        mode: 'same-origin',
-        headers: {'Content-Type': 'application/json'},
-      })
-      .then((response) => response.json())
+      doFetch('GET', null)
       .then((data) => {
-        console.log("Data: ", data)
+        setIsLoading(false);
+        handleResponse(data);
       })
       .catch(err => {
         console.log("Error: ", err ? err : 'none');
@@ -49,42 +58,29 @@ function App() {
   }
 
   const onAddToFavorites = (f: RepoInfo) => {
-    console.log("Calling onAddToFavorites for: ", f);
-    const str = '{id:"'+f.id+'",name:"'+f.name+'"}'
     setError(null);
     setIsLoading(true);
-    return fetch(URL, {
-      method: 'POST',
-      body: str,
-      mode: 'no-cors',
-      headers: headers
-    }).then((resp) => resp.json())
-      .then((jsonResp) => {
-        console.log("jsonResp: ", jsonResp)
-        //handleResponse(jsonResp);
+    doFetch('POST', f)
+      .then((resp) => {
+        setIsLoading(false);
+        handleResponse(resp);
       })
-      // .catch(err => {
-      //   console.log("Error: ", err);
-      //   setError(err);
-      // })
+      .catch(err => {
+        setError(err);
+      })
   }
 
   const onDeleteFromFavorites = (f: RepoInfo) => {
-    const repoInfStr = JSON.stringify(f);
     setError(null);
     setIsLoading(true);
-    return fetch(URL, {
-      method: 'DELETE',
-      body: repoInfStr,
-      mode: 'no-cors',
-      headers: headers
-    }).then((resp) => resp.json())
-      .then((jsonResp) => {
-        handleResponse(jsonResp);
-      }).catch(err => {
-        console.log("Error: ", err);
-        setError(err);
-      })
+    doFetch('DELETE', f)
+    .then((resp) => {
+      setIsLoading(false);
+      handleResponse(resp);
+    })
+    .catch(err => {
+      setError(err);
+    })
   }
 
 

@@ -8,15 +8,14 @@ export type FavoritesListProps = {
 
 //only function we need to pass is refresh for when one is added
 const FavoritesList = ({favoritesList, onDelete}: FavoritesListProps) => {
-    const [favorites, setFavorites] = useState<RepoInfo[] | null>(favoritesList);
 
     return (
         <>
         <h3>Favorites</h3>
         <div>
             {
-                (favorites && favorites.length > 0) ?
-                favorites.map((result: RepoInfo) => {
+                (favoritesList && favoritesList.length > 0) ?
+                favoritesList.map((result: RepoInfo) => {
                     return (
                         <ListItem
                             info={result}
