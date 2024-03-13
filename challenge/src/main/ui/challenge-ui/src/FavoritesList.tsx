@@ -1,4 +1,3 @@
-import {useState} from 'react';
 import ListItem, { RepoInfo } from './ListItem'
 
 export type FavoritesListProps = {
@@ -6,7 +5,6 @@ export type FavoritesListProps = {
     onDelete: (f: RepoInfo) => void;
 }
 
-//only function we need to pass is refresh for when one is added
 const FavoritesList = ({favoritesList, onDelete}: FavoritesListProps) => {
 
     return (

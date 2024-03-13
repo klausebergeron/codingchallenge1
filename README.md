@@ -1,13 +1,14 @@
 To run project: 
 
 API:
+Make sure you have a JDK and Maven installed
 
 Open project in IDE and find challenge\src\main\java\com\challenge\demo\StartApplication.java
 
 Right click and run StartApplication.java
 
 
-UI:
+UI: Make sure you have npm set up
 
 Open up cmd and navigate to project root
 

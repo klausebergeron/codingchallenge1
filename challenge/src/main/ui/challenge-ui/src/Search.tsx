@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { RepoInfo } from './ListItem';
 import ListItem from './ListItem';
+import { formatNumCommas } from './utils';
 export type SearchProps = {
     onAddToFavorites: (f: RepoInfo) => void
 }
@@ -8,39 +9,65 @@ export type SearchProps = {
 const Search = ({onAddToFavorites}: SearchProps) => {
     const [searchInput, setSearchInput] = useState('');
     const [searchResults, setSearchResults] = useState<RepoInfo[] | null>(null);
-    const [totalResults, setTotalResults] = useState(0);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [perPage, setPerPage] = useState(10);
+    const [totalResults, setTotalResults] = useState<number>(0);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [perPage, setPerPage] = useState<number>(10);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const totalPages = Math.ceil(totalResults/perPage);
+    const totalPages: number = useMemo(() => {return Math.ceil(totalResults/perPage)}, [totalResults, perPage]);
     
-    const handleChangeInput = (event: React.ChangeEvent<HTMLInputElement>): void => {
-        if(!!event.target.value) {
-            setSearchInput(event.target.value);
+    const URL = useMemo(() => {
+        return `https://api.github.com/search/repositories?q=${searchInput}&page=${currentPage}&per_page=${perPage}`
+    }, [searchInput, currentPage, perPage]);
+
+    const pageSelectionOptions = useMemo(() => {
+        const options = [];
+        for(let i: number = 1; i <= totalPages; i++) {
+            options.push(
+                <option key={"option"+i} value={i}>
+                    {i}
+                </option>
+            )
         }
-        else setSearchInput('');
+        return options;
+    }, [totalResults, perPage])
+
+    const callSearch = async () => {
+        const controller = new AbortController();
+        const reason = new DOMException('signal timed out', 'TimeoutError');
+        const timeoutId = setTimeout(() => controller.abort(reason), 5000); //abort if takes more than 5seconds
+        let response;
+        try {
+            response = await fetch(URL, { signal: controller.signal });
+        } finally {
+            clearTimeout(timeoutId);
+        }
+        return await response.json();
     }
 
     const fetchSearch = () => {
-        const URL = `https://api.github.com/search/repositories?q=${searchInput}&page=${currentPage}&per_page=${perPage}`;
         setError(null);
         if(searchInput) {
             setIsLoading(true);
-            return fetch(URL)
-                .then((resp) => resp.json())
-                .then((jsonResp) => {
-                    //need to have some way to tell the user that they can't see past first 1000 results
-                    setTotalResults(jsonResp?.total_count);
-                    setSearchResults(jsonResp.items?.map(
+            callSearch().then((resp) => {
+                if(resp.message) {
+                    setSearchResults(null)
+                    setError(resp.message)
+                }
+                else {
+                    setTotalResults(resp?.total_count);
+                    const newSearchResults = resp.items?.map(
                         (item: any): RepoInfo => { 
                             return {
                                 id: item.id, name: item.name, link: item.html_url 
-                            } 
-                    }));
-                    setIsLoading(false);
+                            }
+                    })
+                    setSearchResults(newSearchResults);
+                }
+                setIsLoading(false);
                 })
                 .catch((err) => {
+                    console.log("Error: ", err);
                     setSearchResults(null);
                     setIsLoading(false);
                     setError("Error fetching repos: " + err);
@@ -68,31 +95,33 @@ const Search = ({onAddToFavorites}: SearchProps) => {
         if(currentPage < totalPages) setCurrentPage(currentPage+1)
     }
 
-    const getPageSelectionOptions = () => {
-        const options = [];
-        for(let i: number = 1; i <= totalPages; i++) {
-            options.push(
-                <option key={"option"+i} value={i}>
-                    {i}
-                </option>
-            )
+    const submitClicked = () => {
+        setCurrentPage(1);
+        setTotalResults(0);
+        fetchSearch();
+    }
+
+    const inputEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if(event.key === "Enter") {
+            setCurrentPage(1);
+            setTotalResults(0);
+            fetchSearch();
         }
-        return options;
     }
 
     return (
         <>
             <h3>Search for repo:</h3>
                 {error && <p>ERROR: {error}</p>}
-                <input type="text" onChange={handleChangeInput} value={searchInput}></input>
-                <button type={'submit'} onClick={fetchSearch}>Search</button>
+                <input type="text" onChange={e => setSearchInput(e.target.value)} onKeyDown={inputEnter} value={searchInput}></input>
+                <button type={'submit'} onClick={submitClicked}>Search</button>
             {isLoading && <p>Loading...</p>}
             {searchResults && 
                 <>
                 <div>
-                    <p>Total results: {totalResults.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+                    <p>Total results: {formatNumCommas(totalResults)}</p>
                     <label>Results per page</label>
-                    <select id="perPageSelect" defaultValue={perPage} onChange={e => setPerPage(e.target.value)}>
+                    <select id="perPageSelect" defaultValue={perPage} onChange={e => setPerPage(Number(e.target.value))}>
                         <option value={10}>10</option>
                         <option value={20}>20</option>
                         <option value={50}>50</option>
@@ -102,8 +131,8 @@ const Search = ({onAddToFavorites}: SearchProps) => {
                 <div className='paginationNav'>
                     
                     <label>Page: </label>
-                    <select id="pageSelect" value={currentPage} onChange={e => setCurrentPage(e.target.value)}>
-                        {getPageSelectionOptions()}
+                    <select id="pageSelect" value={currentPage} onChange={e => setCurrentPage(Number(e.target.value))}>
+                        {pageSelectionOptions}
                     </select>
 
                     <button onClick={goFirst} disabled={currentPage === 1}>FIRST</button>
@@ -111,7 +140,8 @@ const Search = ({onAddToFavorites}: SearchProps) => {
                     <button onClick={goNext} disabled={currentPage === totalPages}>NEXT</button>
                     <button onClick={goLast} disabled={currentPage === totalPages}>LAST</button>
                 </div>
-                    {searchResults.map((result: RepoInfo) => {
+                {isLoading ? <p>Loading...</p> :
+                    searchResults.map((result: RepoInfo) => {
                         return (
                             <ListItem
                                 info={result} 

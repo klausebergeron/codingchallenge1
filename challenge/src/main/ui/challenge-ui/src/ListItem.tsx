@@ -5,7 +5,7 @@ export type ListItemProps = {
 }
 
 export type RepoInfo = {
-    id: string;
+    id: number;
     name: string;
     link: string;
 }
@@ -22,7 +22,7 @@ const ListItem = ({info, onAddToFavorites, onDelete}: ListItemProps) => {
             <div style={{width: "300px", display: "flex", justifyContent: "space-between"}}>
                 <a href={info.link} target="_blank">{info.name}</a>
                 {onAddToFavorites ? //if list item in search
-                    <button onClick={() => onAddToFavorites(info)}>+</button>
+                    <button onClick={() => onAddToFavorites(info)}>Add to Favorites</button>
                     :
                     <button onClick={() => handleDelete(info)}>DELETE</button>
                 }

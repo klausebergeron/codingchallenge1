@@ -1,6 +1,6 @@
 import FavoritesList from './FavoritesList';
 import  Search from './Search';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { RepoInfo } from './ListItem';
 
 function App() {
@@ -23,10 +23,6 @@ function App() {
           setIsLoading(false);
           setError(null);
   }
-
-  useEffect(() => {
-    console.log('List updated')
-  }, [displayedList])
 
   useEffect(() => {
     getFavsList();
@@ -57,7 +53,8 @@ function App() {
       })        
   }
 
-  const onAddToFavorites = (f: RepoInfo) => {
+  //callback to cache function def between re-renders of Search
+  const onAddToFavorites = useCallback((f: RepoInfo) => {
     setError(null);
     setIsLoading(true);
     doFetch('POST', f)
@@ -68,9 +65,10 @@ function App() {
       .catch(err => {
         setError(err);
       })
-  }
+  }, [])
 
-  const onDeleteFromFavorites = (f: RepoInfo) => {
+  //callback to cache function def between re-renders of FavoritesList
+  const onDeleteFromFavorites = useCallback((f: RepoInfo) => {
     setError(null);
     setIsLoading(true);
     doFetch('DELETE', f)
@@ -81,7 +79,7 @@ function App() {
     .catch(err => {
       setError(err);
     })
-  }
+  }, [])
 
 
 
