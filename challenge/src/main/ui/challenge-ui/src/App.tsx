@@ -25,8 +25,37 @@ function App() {
   }
 
   useEffect(() => {
+      const getFavsList = async () => {
+        setError(null);
+        setIsLoading(true);
+        await doFetch('GET', null)
+        .then((data) => {
+          setIsLoading(false);
+          handleResponse(data);
+        })
+        .catch(err => {
+          setError(err);
+        })        
+    };
+
     getFavsList();
   }, [])
+
+  // useEffect(() => {
+  //   // fetch data
+  //   const dataFetch = async () => {
+  //     const data = await (
+  //       await fetch(
+  //         'https://run.mocky.io/v3/d6155d63-938f-484c-8d87-6f918f126cd4',
+  //       )
+  //     ).json();
+
+  //     // set state when the data received
+  //     setData(data);
+  //   };
+
+  //   dataFetch();
+  // }, []);
 
   async function doFetch(method: string, body: any) {
     let response = await fetch(URL, {
@@ -38,19 +67,6 @@ function App() {
       headers: {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': URL},
     })
     return await response.json();
-  }
-
-  const getFavsList = () => {
-      setError(null);
-      setIsLoading(true);
-      doFetch('GET', null)
-      .then((data) => {
-        setIsLoading(false);
-        handleResponse(data);
-      })
-      .catch(err => {
-        setError(err);
-      })        
   }
 
   //callback to cache function def between re-renders of Search

@@ -15,23 +15,18 @@ const Search = ({onAddToFavorites}: SearchProps) => {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     
-    const totalPages: number = useMemo(() => {return Math.ceil(totalResults/perPage)}, [totalResults, perPage]);
+    const pageOptions: number[] = useMemo(() => {
+        //since github's api won't return results past 1000
+        const total = totalResults > 1000 ? Math.floor(1000/perPage) : Math.ceil(totalResults/perPage);
+        var pso: number[] = [];
+        for(let i = 1; i <= total; i++) pso[i] = i;
+        return pso;
+    }, 
+    [totalResults, perPage]);
     
     const URL = useMemo(() => {
         return `https://api.github.com/search/repositories?q=${searchInput}&page=${currentPage}&per_page=${perPage}`
     }, [searchInput, currentPage, perPage]);
-
-    const pageSelectionOptions = useMemo(() => {
-        const options = [];
-        for(let i: number = 1; i <= totalPages; i++) {
-            options.push(
-                <option key={"option"+i} value={i}>
-                    {i}
-                </option>
-            )
-        }
-        return options;
-    }, [totalResults, perPage])
 
     const callSearch = async () => {
         const controller = new AbortController();
@@ -40,43 +35,44 @@ const Search = ({onAddToFavorites}: SearchProps) => {
         let response;
         try {
             response = await fetch(URL, { signal: controller.signal });
+            return await response.json();
+        } catch(err) {
+            console.log("Err: ", err);
         } finally {
             clearTimeout(timeoutId);
         }
-        return await response.json();
     }
 
     const fetchSearch = () => {
         setError(null);
-        if(searchInput) {
-            setIsLoading(true);
-            callSearch().then((resp) => {
-                if(resp.message) {
-                    setSearchResults(null)
-                    setError(resp.message)
-                }
-                else {
-                    setTotalResults(resp?.total_count);
-                    const newSearchResults = resp.items?.map(
-                        (item: any): RepoInfo => { 
-                            return {
-                                id: item.id, name: item.name, link: item.html_url 
-                            }
+        setIsLoading(true);
+        callSearch().then((resp) => {
+            
+            if(resp.message) {
+                setSearchResults(null)
+                setError(resp.message)
+            }
+            else {
+                setTotalResults(resp.total_count);
+                setSearchResults(resp?.items?.map(
+                    (item: any): RepoInfo => {
+                        return { id: item.id, name: item.name, link: item.html_url }     
                     })
-                    setSearchResults(newSearchResults);
-                }
-                setIsLoading(false);
-                })
-                .catch((err) => {
-                    setSearchResults(null);
-                    setIsLoading(false);
-                    setError("Error fetching repos: " + err);
-                })
-        }
+                )
+            }
+            setIsLoading(false);
+            }
+        ).catch((err) => {
+            setSearchResults(null);
+            setIsLoading(false);
+            setError("Error fetching repos: " + err + "--");
+        })
     }
 
     useEffect(() => {
-        fetchSearch();
+        if(searchInput && searchInput !== '') {
+            fetchSearch();
+        }
     }, [currentPage, perPage])
 
     const goBack = () => {
@@ -88,11 +84,11 @@ const Search = ({onAddToFavorites}: SearchProps) => {
     }
 
     const goLast = () => {
-        setCurrentPage(totalPages);
+        setCurrentPage(pageOptions.length-1);
     }
 
     const goNext = () => {
-        if(currentPage < totalPages) setCurrentPage(currentPage+1)
+        if(currentPage < pageOptions.length-1) setCurrentPage(currentPage+1)
     }
 
     const submitClicked = () => {
@@ -110,9 +106,11 @@ const Search = ({onAddToFavorites}: SearchProps) => {
     }
 
     const reset = () => {
+        setSearchInput('');
         setSearchResults(null);
         setCurrentPage(1);
         setTotalResults(0);
+        setError(null);
     }
 
     return (
@@ -143,13 +141,13 @@ const Search = ({onAddToFavorites}: SearchProps) => {
                     
                     <label>Page: </label>
                     <select id="pageSelect" value={currentPage} onChange={e => setCurrentPage(Number(e.target.value))}>
-                        {pageSelectionOptions}
+                        {pageOptions.map((pso) => <option value={pso} key={'option'+pso}>{pso}</option>)}
                     </select>
 
                     <button onClick={goFirst} disabled={currentPage === 1}>FIRST</button>
                     <button onClick={goBack} disabled={currentPage === 1}>PREV</button>
-                    <button onClick={goNext} disabled={currentPage === totalPages}>NEXT</button>
-                    <button onClick={goLast} disabled={currentPage === totalPages}>LAST</button>
+                    <button onClick={goNext} disabled={currentPage === pageOptions.length-1}>NEXT</button>
+                    <button onClick={goLast} disabled={currentPage === pageOptions.length-1}>LAST</button>
                 </div>
                 {isLoading ? <p>Loading...</p> :
                     searchResults.map((result: RepoInfo) => {
