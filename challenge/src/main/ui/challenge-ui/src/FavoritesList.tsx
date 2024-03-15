@@ -9,7 +9,7 @@ const FavoritesList = ({favoritesList, onDelete}: FavoritesListProps) => {
 
     return (
         <>
-        <h3>Favorites</h3>
+        <h3>{'Favorites (' + favoritesList?.length + ')'}</h3>
         <div>
             {
                 (favoritesList && favoritesList.length > 0) ?
