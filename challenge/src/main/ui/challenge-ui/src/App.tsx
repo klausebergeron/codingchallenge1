@@ -29,35 +29,18 @@ function App() {
         setError(null);
         setIsLoading(true);
         await doFetch('GET', null)
-        .then((data) => {
-          setIsLoading(false);
-          handleResponse(data);
-        })
-        .catch(err => {
-          setError(err);
-        })        
+          .then((data) => {
+            setIsLoading(false);
+            handleResponse(data);
+          })
+          .catch(err => {
+            setError(err);
+          })        
     };
-
     getFavsList();
   }, [])
 
-  // useEffect(() => {
-  //   // fetch data
-  //   const dataFetch = async () => {
-  //     const data = await (
-  //       await fetch(
-  //         'https://run.mocky.io/v3/d6155d63-938f-484c-8d87-6f918f126cd4',
-  //       )
-  //     ).json();
-
-  //     // set state when the data received
-  //     setData(data);
-  //   };
-
-  //   dataFetch();
-  // }, []);
-
-  async function doFetch(method: string, body: any) {
+  const doFetch = async(method: string, body: any) => {
     let response = await fetch(URL, {
       body: body ? JSON.stringify(body) : null,
       method: method,
@@ -104,11 +87,11 @@ function App() {
       <h1>
         GIT Hub API Coding challenge
       </h1>
-      <div style={{display: 'flex', justifyContent: 'space-evenly'}}>
-        <div>
+      <div className='flex even main'>
+        <div className='panel stdContainer'>
           <Search onAddToFavorites={onAddToFavorites}/>
         </div>
-        <div>
+        <div className='panel stdContainer'>
           {error && <div>{error}</div>}
           {isLoading && <div>Loading...</div>}
           {displayedList &&

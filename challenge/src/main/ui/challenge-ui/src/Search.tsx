@@ -47,12 +47,10 @@ const Search = ({onAddToFavorites}: SearchProps) => {
         setError(null);
         setIsLoading(true);
         callSearch().then((resp) => {
-            
             if(resp.message) {
                 setSearchResults(null)
                 setError(resp.message)
-            }
-            else {
+            } else {
                 setTotalResults(resp.total_count);
                 setSearchResults(resp?.items?.map(
                     (item: any): RepoInfo => {
@@ -61,13 +59,12 @@ const Search = ({onAddToFavorites}: SearchProps) => {
                 )
             }
             setIsLoading(false);
-            }
-        ).catch((err) => {
+        }).catch((err) => {
             setSearchResults(null);
             setIsLoading(false);
             setError("Error fetching repos: " + err + "--");
         })
-    }
+    }   
 
     useEffect(() => {
         if(searchInput && searchInput !== '') {
@@ -115,39 +112,45 @@ const Search = ({onAddToFavorites}: SearchProps) => {
 
     return (
         <>
-            <h3>Search for repo:</h3>
+            <h3>Search for Repository Name:</h3>
                 {error &&
-                    <div style={{display: "flex", justifyContent: "space-between"}}>
+                    <div className={"flex apart"}>
                         <p>ERROR: {error}</p>
                         <button onClick={reset}>OK</button>
                     </div>
                 }
-                <input type="text" onChange={e => setSearchInput(e.target.value)} onKeyDown={inputEnter} value={searchInput}></input>
-                <button type={'submit'} onClick={submitClicked}>Search</button>
+                <div className='flex apart'>
+                    <input type="text" onChange={e => setSearchInput(e.target.value)} onKeyDown={inputEnter} value={searchInput}></input>
+                    <button type={'submit'} className={'searchButton'} onClick={submitClicked}>SEARCH</button>
+                </div>
             {isLoading && <p>Loading...</p>}
             {searchResults && 
                 <>
-                <div>
+                <div className='flex apart'>
                     <p>Total results: {formatNumCommas(totalResults)}</p>
-                    <label>Results per page</label>
+                    <div className='centerVert'>
+                    <label>Results per page: </label>
                     <select id="perPageSelect" defaultValue={perPage} onChange={e => setPerPage(Number(e.target.value))}>
                         <option value={10}>10</option>
                         <option value={20}>20</option>
                         <option value={50}>50</option>
                         <option value={100}>100</option>
                     </select>
+                    </div>
                 </div>
-                <div className='paginationNav'>
-                    
-                    <label>Page: </label>
-                    <select id="pageSelect" value={currentPage} onChange={e => setCurrentPage(Number(e.target.value))}>
-                        {pageOptions.map((pso) => <option value={pso} key={'option'+pso}>{pso}</option>)}
-                    </select>
-
-                    <button onClick={goFirst} disabled={currentPage === 1}>FIRST</button>
-                    <button onClick={goBack} disabled={currentPage === 1}>PREV</button>
-                    <button onClick={goNext} disabled={currentPage === pageOptions.length-1}>NEXT</button>
-                    <button onClick={goLast} disabled={currentPage === pageOptions.length-1}>LAST</button>
+                <div className='paginationNav flex apart'>
+                    <div>
+                        <label>Page: </label>
+                        <select id="pageSelect" value={currentPage} onChange={e => setCurrentPage(Number(e.target.value))}>
+                            {pageOptions.map((pso) => <option value={pso} key={'option'+pso}>{pso}</option>)}
+                        </select>
+                    </div>
+                    <div className='navbuttons'>
+                        <button onClick={goFirst} disabled={currentPage === 1}>{'<<'}</button>
+                        <button onClick={goBack} disabled={currentPage === 1}>{'<'}</button>
+                        <button onClick={goNext} disabled={currentPage === pageOptions.length-1}>{'>'}</button>
+                        <button onClick={goLast} disabled={currentPage === pageOptions.length-1}>{'>>'}</button>
+                    </div>
                 </div>
                 {isLoading ? <p>Loading...</p> :
                     searchResults.map((result: RepoInfo) => {

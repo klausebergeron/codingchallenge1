@@ -18,12 +18,12 @@ const ListItem = ({info, onAddToFavorites, onDelete}: ListItemProps) => {
 
     return (
         <ul key={info.id}>
-            <div style={{width: "300px", display: "flex", justifyContent: "space-between"}}>
-                <a href={info.link} target="_blank">{info.name}</a>
+            <div className='flex apart listItem stdContainer'>
+                <a className="centerVert" href={info.link} target="_blank">{info.name}</a>
                 {onAddToFavorites ? //if list item in search
                     <button onClick={() => onAddToFavorites(info)}>Add to Favorites</button>
                     :
-                    <button onClick={() => handleDelete(info)}>DELETE</button>
+                    <button className='delete' onClick={() => handleDelete(info)}>DELETE</button>
                 }
             </div>
         </ul>
